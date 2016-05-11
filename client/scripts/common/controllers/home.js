@@ -6,79 +6,238 @@ module.exports = function(app) {
     var fullname = app.name + '.' + controllername;
     /*jshint validthis: true */
 
-    var deps = [];
+    var deps = ['$window'];
 
-    function controller() {
+    function controller($window) {
         var vm = this;
         vm.controllername = fullname;
-        d3.selectAll("div").style("color", function() {
-            return "hsl(" + Math.random() * 360 + ",100%,50%)";
-        });
 
-        console.log(d3);
-        d3.selectAll("p").text("Alors qu'est que tu en dis");
+        vm.width = $window.innerWidth;
+        vm.height = $window.innerHeight;
 
-        d3.select("body")
-            .append("span")
-            .text('lol')
-            .style('color', 'blue');
+        vm.selectNumber = function(number) {
+            console.log(number)
+            switch (number) {
+                case 1:
+                    console.log(number)
+                    vm.redrawD3('1', [1]);
+                    break;
+                case 2:
+                    console.log(number)
+                    vm.redrawD3('2', [1, 1]);
+                    break;
+                case 3:
+                    console.log(number)
+                    vm.redrawD3('3', [1, 1, 1]);
+                    break;
+                case 4:
+                    console.log(number)
+                    vm.redrawD3('4', [1, 1, 1, 1]);
+                    break;
+                case 5:
+                    console.log(number)
+                    vm.redrawD3('5', [1, 1, 1, 1, 1]);
+                    break;
+                case 6:
+                    console.log(number)
+                    vm.redrawD3('6', [1, 1, 1, 1, 1, 1]);
+                    break;
 
-        // Circles BIS
+            }
+        };
 
-        var data = [10, 12, 18, 30, 5, 15, 10, 1];
-        var r = 300;
+        vm.initiateD3 = function() {
+            d3.select('svg').remove();
 
-        var color = d3.scale.linear()
-            .domain(['0', '1', '5', '10', '15', '20', '25', '30'])
-            .range(["white", "#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+            vm.MAXwidth = vm.width - 20;
+            vm.MAXheight = vm.height / 2.7;
+            vm.rayonEXT = Math.min(vm.MAXwidth, vm.MAXheight) / 2;
 
-        var canvas = d3.select('span')
-            .append('svg')
-            .attr('width', 1000)
-            .attr('height', 1000);
+            vm.svg = d3.select('#test')
+                .append('svg')
+                .attr('width', vm.MAXwidth)
+                .attr('height', vm.MAXheight)
+                .append('g');
 
-        var group = canvas.append('g')
-            .attr('transform', 'translate(300, 300)');
+            vm.color = d3.scale.linear()
+                .domain(['0', '1', '2', '3', '4', '5', '25', '30'])
+                .range(['#33C1E3', '#FF7E38', '#FF7E38', '#6b486b', '#a05d56', '#d0743c', '#ff8c00', 'white']);
+        };
 
-        var p = 2 * Math.PI;
+        vm.drawD3 = function(text, arrayPeople) {
 
-        var arc = d3.svg.arc()
-            .innerRadius(r - r / 2)
-            .outerRadius(r);
+            vm.svg.selectAll("text").remove();
+            vm.time = vm.svg.append("text")
+                .attr("y", vm.MAXheight / 2)
+                .attr("x", vm.MAXwidth / 2 - 40)
+                .text(text);
 
-        var pie = d3.layout.pie()
-            .value(function(d) {
+            vm.minute = vm.svg.append("text")
+                .attr("y", vm.MAXheight / 2 + 70)
+                .attr("x", vm.MAXwidth / 2 - 60)
+                .text('min');
+
+            var color = d3.scale.category20();
+
+            // construct default pie laoyut
+            var pie = d3.layout.pie().value(function(d) {
                 return d;
-            });
+            }).sort(null);
 
-        var arcs = group.selectAll('.arc')
-            .data(pie(data))
-            .enter()
-            .append('g')
-            .attr('class', 'arc');
+            // construct arc generator
+            var arc = d3.svg.arc()
+                .outerRadius(vm.rayonEXT)
+                .innerRadius(vm.rayonEXT / 1.35);
 
-        arcs.append('path')
-            .attr('d', arc)
-            .attr('fill', function(d) {
-                return color(d.data / 2);
-            })
-            .transition()
-            .duration(2000)
-            .delay(200)
-            .attr('fill', function(d) {
-                return color(d.data);
-            });
-        // .on('mouseover', function(d) {
-        //     return 'translate(' + d.data + ',' + d.data + ')';
+            // creates the pie chart container
+
+            vm.g = vm.svg.append('g')
+                .attr('transform', function() {
+                    if (window.innerWidth >= vm.MAXwidth) vm.shiftWidth = vm.MAXwidth / 2;
+                    if (window.innerWidth < vm.MAXwidth) vm.shiftWidth = vm.MAXwidth / 3;
+                    return 'translate(' + vm.shiftWidth + ',' + vm.MAXheight / 2 + ')';
+                });
+
+            vm.path = vm.g.datum(arrayPeople).selectAll("path")
+                .data(pie)
+                .enter().append("path")
+                .attr("class", "piechart")
+                .attr("fill", function(d, i) {
+                    return color(i);
+                })
+                .attr("d", arc)
+                .each(function(d) {
+                    this._current = d;
+                });
+
+        };
+
+        vm.redrawD3 = function(text, arrayPeople) {
+            console.log('arrayPeople', arrayPeople);
+
+            vm.time = vm.svg.selectAll('text')
+                .attr('y', vm.MAXheight / 2)
+                .attr('x', vm.MAXwidth / 2 - 40)
+                .text(text);
+
+            vm.minute = vm.svg.append('text')
+                .attr('y', vm.MAXheight / 2 + 70)
+                .attr('x', vm.MAXwidth / 2 - 60)
+                .text('min');
+
+            var pie = d3.layout.pie().value(function(d) {
+                console.log('d', d);
+                return d;
+            }).sort(null);
+
+            var arc = d3.svg.arc()
+                .outerRadius(vm.rayonEXT)
+                .innerRadius(vm.rayonEXT / 1.35);
+            // add transition to new path
+
+            vm.g.datum(arrayPeople).selectAll('path').data(pie).transition().duration(3000).attrTween('d', arcTween);
+
+            // add any new paths
+            vm.g.datum(arrayPeople).selectAll('path')
+                .data(pie)
+                .enter().append('path')
+                .attr('class', 'piechart')
+                .attr('fill', function(d, i) {
+                    return vm.color(i);
+                })
+                .attr('d', arc)
+                .each(function(d) {
+                    this._current = d;
+                });
+
+            // Store the displayed angles in _current.
+            // Then, interpolate from _current to the new angles.
+            // During the transition, _current is updated in-place by d3.interpolate.
+            function arcTween(a) {
+                var i = d3.interpolate(this._current, a);
+                this._current = i(0);
+                return function(t) {
+                    // console.log('---------------');
+                    // console.log('t', t);
+                    // console.log('i(t)', i(t));
+                    return arc(i(t));
+                };
+            };
+        };
+
+        vm.initiateD3();
+
+        vm.drawD3('3', [1, 1, 1, 1, 1, 1]);
+        //------Exercice Cercle dynamique
+
+        // d3.selectAll("div").style("color", function() {
+        //     return "hsl(" + Math.random() * 360 + ",100%,50%)";
         // });
 
-        arcs.append('text')
-            .attr('transform', function(d) {
-                return 'translate(' + arc.centroid(d) + ')';
-            })
-            .text(function(d) {
-                return (d.data);
-            });
+        // console.log(d3);
+        // d3.selectAll("p").text("Alors qu'est que tu en dis");
+
+        // d3.select("body")
+        //     .append("span")
+        //     .text('lol')
+        //     .style('color', 'blue');
+
+        // // Circles BIS
+
+        // var data = [10, 12, 18, 30, 5, 15, 10, 1];
+        // var r = 300;
+
+        // var color = d3.scale.linear()
+        //     .domain(['0', '1', '5', '10', '15', '20', '25', '30'])
+        //     .range(["white", "#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
+        // var canvas = d3.select('span')
+        //     .append('svg')
+        //     .attr('width', 1000)
+        //     .attr('height', 1000);
+
+        // var group = canvas.append('g')
+        //     .attr('transform', 'translate(300, 300)');
+
+        // var p = 2 * Math.PI;
+
+        // var arc = d3.svg.arc()
+        //     .innerRadius(r - r / 2)
+        //     .outerRadius(r);
+
+        // var pie = d3.layout.pie()
+        //     .value(function(d) {
+        //         return d;
+        //     });
+
+        // var arcs = group.selectAll('.arc')
+        //     .data(pie(data))
+        //     .enter()
+        //     .append('g')
+        //     .attr('class', 'arc');
+
+        // arcs.append('path')
+        //     .attr('d', arc)
+        //     .attr('fill', function(d) {
+        //         return color(d.data / 2);
+        //     })
+        //     .transition()
+        //     .duration(2000)
+        //     .delay(200)
+        //     .attr('fill', function(d) {
+        //         return color(d.data);
+        //     });
+        // // .on('mouseover', function(d) {
+        // //     return 'translate(' + d.data + ',' + d.data + ')';
+        // // });
+
+        // arcs.append('text')
+        //     .attr('transform', function(d) {
+        //         return 'translate(' + arc.centroid(d) + ')';
+        //     })
+        //     .text(function(d) {
+        //         return (d.data);
+        //     });
 
         //-------Circles-------
         // var canvas = d3.select('span')
@@ -137,15 +296,15 @@ module.exports = function(app) {
         //--------transition
 
         // var canvas = d3.select('span')
- //     .append('svg')
- //     .attr('width', 500)
- //     .attr('height', 500)
- //     .append('g');
+        //     .append('svg')
+        //     .attr('width', 500)
+        //     .attr('height', 500)
+        //     .append('g');
 
- // var circle = canvas.append("circle")
- //     .attr('cx', 100)
- //     .attr('cy', 100)
- //     .attr('r', 50);
+        // var circle = canvas.append("circle")
+        //     .attr('cx', 100)
+        //     .attr('cy', 100)
+        //     .attr('r', 50);
 
         // circle.transition()
         //     .duration(2000)
