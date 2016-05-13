@@ -15,31 +15,59 @@ module.exports = function(app) {
         vm.width = $window.innerWidth;
         vm.height = $window.innerHeight;
 
-        vm.selectNumber = function(number) {
-            console.log(number)
+        // vm.selectNumber = function(number) {
+        //     switch (number) {
+        //         case 1:
+        //             // console.log(number)
+        //             vm.redrawD3('1', [1]);
+        //             break;
+        //         case 2:
+        //             // console.log(number)
+        //             vm.redrawD3('2', [1, 1]);
+        //             break;
+        //         case 3:
+        //             // console.log(number)
+        //             vm.redrawD3('3', [1, 1, 1]);
+        //             break;
+        //         case 4:
+        //             // console.log(number)
+        //             vm.redrawD3('4', [1, 1, 1, 1]);
+        //             break;
+        //         case 5:
+        //             // console.log(number)
+        //             vm.redrawD3('5', [1, 1, 1, 1, 1]);
+        //             break;
+        //         case 6:
+        //             // console.log(number)
+        //             vm.redrawD3('6', [1, 1, 1, 1, 1, 1]);
+        //             break;
+
+        //     }
+        // };
+         vm.selectNumber = function(number) {
             switch (number) {
                 case 1:
-                    console.log(number)
-                    vm.redrawD3('1', [1]);
+                    // console.log(number)
+                    vm.redrawD3('1', [1, 0, 0, 0, 0, 0]);
                     break;
                 case 2:
-                    console.log(number)
-                    vm.redrawD3('2', [1, 1]);
+                    // console.log(number)
+                    vm.redrawD3('2', [1, 1, 0, 0, 0, 0]);
                     break;
                 case 3:
-                    console.log(number)
-                    vm.redrawD3('3', [1, 1, 1]);
+                    // console.log(number)
+                    vm.redrawD3('3', [1, 1, 1, 0, 0, 0]);
                     break;
                 case 4:
-                    console.log(number)
-                    vm.redrawD3('4', [1, 1, 1, 1]);
+                    // console.log(number)
+                    vm.redrawD3('4', [1, 1, 1, 1, 0, 0]);
                     break;
                 case 5:
-                    console.log(number)
-                    vm.redrawD3('5', [1, 1, 1, 1, 1]);
+                    // console.log(number)
+                    vm.redrawD3('5', [1, 1, 1, 1, 1, 0]);
                     break;
                 case 6:
-                    console.log(number)
+                    // console.log(number)
                     vm.redrawD3('6', [1, 1, 1, 1, 1, 1]);
                     break;
 
@@ -60,8 +88,8 @@ module.exports = function(app) {
                 .append('g');
 
             vm.color = d3.scale.linear()
-                .domain(['0', '1', '2', '3', '4', '5', '25', '30'])
-                .range(['#33C1E3', '#FF7E38', '#FF7E38', '#6b486b', '#a05d56', '#d0743c', '#ff8c00', 'white']);
+                .domain(['0', '1', '2', '3', '4', '5', '6', '7'])
+                .range(['#33C1E3', '#FF7E38', '#FF7E38', '#6b486b', '#33C1E3', '#f1124f', '#ff8c00', 'white']);
         };
 
         vm.drawD3 = function(text, arrayPeople) {
@@ -126,7 +154,6 @@ module.exports = function(app) {
                 .text('min');
 
             var pie = d3.layout.pie().value(function(d) {
-                console.log('d', d);
                 return d;
             }).sort(null);
 
@@ -134,6 +161,18 @@ module.exports = function(app) {
                 .outerRadius(vm.rayonEXT)
                 .innerRadius(vm.rayonEXT / 1.35);
             // add transition to new path
+
+            //Retirer l'un des élements
+            console.log('vm.g.datum(arrayPeople).selectAll()', vm.g.datum(arrayPeople).selectAll('path'));
+            //
+            vm.data = vm.g.datum(arrayPeople).selectAll('path')[0];
+            console.log('vm.data', vm.data);
+            console.log('arrayPeople', arrayPeople);
+            console.log('arrayPeople.length', arrayPeople.length);
+            console.log('vm.data[arrayPeople.length-1]', vm.data[arrayPeople.length - 1]);
+            //
+            //vm.g.datum(arrayPeople).selectAll('path').remove();
+            //
 
             vm.g.datum(arrayPeople).selectAll('path').data(pie).transition().duration(3000).attrTween('d', arcTween);
 
@@ -167,7 +206,7 @@ module.exports = function(app) {
 
         vm.initiateD3();
 
-        vm.drawD3('3', [1, 1, 1, 1, 1, 1]);
+        vm.drawD3('4', [1, 1, 1, 1]);
         //------Exercice Cercle dynamique
 
         // d3.selectAll("div").style("color", function() {
